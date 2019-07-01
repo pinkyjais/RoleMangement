@@ -1,0 +1,474 @@
+@model adminlte.Models.RoleViewModel.BindModuleActionlist
+@{
+    ViewBag.Title = "ManageRole";
+    //Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<link href="~/Scripts/adminlte/plugins/toastr/toastr.css" rel="stylesheet" />
+
+<div class="content-wrapper">
+    <section class="content-header">
+        <div class="row">
+            <div class="col-md-4">
+                <ol class="breadcrumb">
+                    <li><a href="#">Home</a></li>
+                    <li class="active">Manage Role</li>
+                </ol>
+            </div>
+            <input type="hidden" id="hdnRoleID" value="0" />
+            <div class="col-md-8">
+                <div class="row form-group">
+                    @*<div class="col-md-4 col-xs-4">
+                            <div class="row">
+                                <div class="col-md-2">
+                                    <i style="padding:5px" class="fa fa-home fa-2x"></i>
+                                </div>
+                                <div class="col-md-10">
+                                    <h4>Desktop Users</h4>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 col-xs-4">
+                            <div class="row">
+                                <div class="col-md-2">
+                                    <i style="padding:8px 6px 4px 0px" class="fa fa-laptop fa-2x"></i>
+                                </div>
+                                <div class="col-md-10">
+                                    <h4>Web Users</h4>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 col-xs-4">
+                            <div class="row">
+                                <div class="col-md-2">
+                                    <i style="padding:5px" class="fa fa-mobile fa-2x"></i>
+                                </div>
+                                <div class="col-md-10">
+                                    <h4>Mobile App Users</h4>
+                                </div>
+                            </div>
+                        </div>*@
+                </div>
+            </div>
+        </div>
+    </section>
+    <section class="content">
+        <div class="row">
+            <!-- left column -->
+            <div class="col-md-7">
+                <!-- general form elements -->
+                <div class="box box-primary">
+                    <div class="box-header with-border">
+                        <h3 class="box-title" id="roleheading">Save Role</h3>
+                    </div>
+                    <!-- /.box-header -->
+                    <!-- form start -->
+                    <form role="form">
+                        <div class="box-body">
+                            <div class="form-group">
+                                <label for="exampleInputEmail1">Role Name</label>
+                                <input type="email" class="form-control chkRequired" id="txtRoleName" placeholder="Role Name">
+                            </div>
+                            @*<div class="form-group">
+                                    <label for="exampleInputPassword1" id="lblRolelevel">Role Level</label>
+                                    <br />
+                                    Web Portal
+                                    <label>
+                                        <input name="Rolelevel" id="rbdWeb" value="web" type="radio" class="minimal">
+                                    </label>
+                                    Desktop App
+                                    <label>
+                                        <input name="Rolelevel" id="rbddesktop" value="desktop" type="radio" class="minimal">
+                                    </label>
+                                    Mobile App
+                                    <label>
+                                        <input name="Rolelevel" type="radio" id="rbdmobile" value="mobile" class="minimal">
+                                    </label>
+                                </div>
+                                <div class="form-group">
+                                    <label>Description</label>
+                                    <textarea rows="3" cols="2" id="txtRoleDescription" class="form-control" placeholder="Role Description"></textarea>
+                                </div>*@
+                            <div class="row">
+                                <div class="col-md-2 col-xs-3">
+                                    Permission <h3>Modules</h3>
+                                </div>
+                                <div class="col-md-1 col-xs-2">
+                                    <label>
+                                        <input type="checkbox" id="SelectALL">
+                                    </label>
+                                </div>
+                                <div class="col-md-offset-2 col-xs-offset-3">
+                                    Select All
+                                </div>
+                            </div>
+                            @*to check that model is not null*@
+                            @if (Model.objBindModuleaction != null)
+                            {
+                                foreach (var item in Model.objBindModuleaction)
+                                {
+                                    <div id="@String.Concat("module",item.moduleid)" class="form-group">
+                                        <label>@item.modulename</label>
+                                        <div id="dvRolePermissions">
+                                            <div class="row">
+                                                @foreach (var item1 in item.actionlist)
+                                                {
+                                                    <div class="col-md-3 col-xs-3">
+                                                        @item1.actionname
+                                                        <label>
+                                                            <input type="checkbox" actionid="@item1.actionid" moduleid="@item.moduleid" id="@item1.actionname@item1.actionid" class="minimal">
+                                                        </label>
+                                                    </div>
+                                                }
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+                            }
+                        </div>
+                        <!-- /.box-body -->
+                        <div class="box-footer">
+                            <button type="button" onclick="savepermission()" class="btn btn-primary pull-right" id="btnsaverole">Add Role</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            <!--/.col (left) -->
+            <!-- right column -->
+            <div class="col-md-5">
+
+                <!-- general form elements -->
+                <div class="box box-primary table-responsive">
+                    <div class="box-header with-border">
+                        <h3 class="box-title">Role List</h3>
+                    </div>
+                    <table id="example2" class="table table-bordered table-hover">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Role Name</th>
+                                @*<th>Permission</th>
+                                    <th>Role Level</th>*@
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @*to check that model is not null*@
+                            @if (Model.objRoleList != null)
+                            {
+                                foreach (var item in Model.objRoleList)
+                                {
+                                    <tr>
+                                        <td>@item.RoleID</td>
+                                        <td>@item.RoleName</td>
+                                        @*<td>@item.Permission</td>*@
+
+                                        <td>
+                                            @*to check that logged in user roleid is 1 then goes inside*@
+                                            @if (Convert.ToInt32(HttpContext.Current.Session["RoleId"].ToString()) == 0)
+                                            {
+                                                @*to check that the role id not equal to 1 then goes in*@
+                                                if (item.RoleID != 1)
+                                                {
+                                                    <div class="row">
+                                                        <div class="col-md-4 col-xs-12" style="padding-bottom:5px">
+                                                            <a class="btn btn-primary" onclick="EditRole(@item.RoleID,'@item.RoleName')"><i class="fa fa-pencil"></i> Edit</a>
+                                                        </div>
+                                                        <div class="col-md-4 col-xs-12">
+                                                            <a href="/Role/DeleteRole/@item.RoleID" onclick="return confirm('Are you sure you want to delete this Role?');" class="btn btn-danger"><i class="fa fa-trash"></i> Delete</a>
+                                                        </div>
+                                                    </div>
+                                                }
+                                                else
+                                                {
+                                                    <div class="row">
+                                                        <div class="col-md-4 col-xs-12" style="padding-bottom:5px">
+                                                            <a disabled="disabled" class="btn btn-primary disabled" onclick="EditRole(@item.RoleID,'@item.RoleName')"><i class="fa fa-pencil"></i> Edit</a>
+                                                        </div>
+                                                        <div class="col-md-4 col-xs-12">
+                                                            <a href="/Role/DeleteRole/@item.RoleID" onclick="return confirm('Are you sure you want to delete this Role?');" class="btn btn-danger disabled"><i class="fa fa-trash"></i> Delete</a>
+                                                        </div>
+                                                        <div class="col-md-4 col-xs-12"></div>
+                                                    </div>
+                                                }
+                                            }
+                                            else
+                                            {
+                                                <div class="row">
+                                                    <div class="col-md-4 col-xs-12" style="padding-bottom:5px">
+                                                        <button class="btn btn-primary" onclick="EditRole(@item.RoleID,'@item.RoleName')"><i class="fa fa-pencil"></i> Edit</button>
+                                                    </div>
+                                                    <div class="col-md-4 col-xs-12">
+                                                        <a href="/Role/DeleteRole/@item.RoleID" onclick="return confirm('Are you sure you want to delete this Role?');" class="btn btn-danger"><i class="fa fa-trash"></i> Delete</a>
+                                                    </div>
+                                                    <div class="col-md-4 col-xs-12">
+                                                    </div>
+                                                </div>
+                                            }
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                        </tbody>
+                    </table>
+                </div>
+                <!-- /.box -->
+            </div>
+        </div>
+    </section>
+</div>
+
+@section Scripts
+{
+    <script src="~/Scripts/adminlte/plugins/toastr/toastr.js"></script>
+    <script type="text/javascript">
+        function checksession() {
+            $.ajax({
+                type: 'POST',
+                dataType: 'json',
+                contentType: 'application/json',
+                url: '/Login/checkSession',
+                data: '{}',
+                success: function (data) {
+                    //if data == false then session has expired and it will redirect to login
+                    if (data == false) {
+                        location.href = "/Login/Login"
+                    }
+                },
+                error: function (xhr) {
+                      try {
+                        result = JSON.parse(result);
+                    } catch (e) {
+                        var elements = $(result);
+                        var found = $('#isunauthorized', elements);
+                        // to check that user has rights for this page access
+                        if (found.length > 0) {
+                            window.location.href = "/Login/UnAuthorized";
+                        }
+                    }
+                }
+            });
+        }
+        $(document).ready(function () {
+            //this function is used to check session
+            checksession();
+             @*$('.img-circle').attr('src', "@adminlte.Models.Sessionhelper.Image");
+            $('.user-image').attr('src', "@adminlte.Models.Sessionhelper.Image");
+            $('.username').text("@adminlte.Models.Sessionhelper.UserName");*@
+            $('input[type="checkbox"].minimal, input[type="radio"].minimal').iCheck({
+                checkboxClass: 'icheckbox_minimal-blue',
+                radioClass: 'iradio_minimal-blue'
+            });
+        });
+        function showloading() {
+            $('#divLoader').show();
+            }
+        function hideloading() {
+            $('#divLoader').hide();
+        }
+        $('#SelectALL').change(function () {
+            showloading();
+            setTimeout(function () {
+                if ($("#SelectALL").is(":checked")) {
+                $("#dvRolePermissions .row .col-md-3").each(function (index) {
+                    $(this).find(".minimal:checkbox").prop('checked', 'checked');
+                    $('input[type="checkbox"].minimal, input[type="radio"].minimal').iCheck({
+                        checkboxClass: 'icheckbox_minimal-blue',
+                        radioClass: 'iradio_minimal-blue'
+                    });
+                });
+            }
+            else {
+                $("#dvRolePermissions .row .col-md-3").each(function (index) {
+                    $(this).find(".minimal:checkbox").prop('checked', '');
+                    $('input[type="checkbox"].minimal, input[type="radio"].minimal').iCheck({
+                        checkboxClass: 'icheckbox_minimal-blue',
+                        radioClass: 'iradio_minimal-blue'
+                    });
+                });
+                }
+            }, 10000);
+            setTimeout(function () { hideloading() }, 10000);
+        });
+        function savepermission() {
+            $('#divLoader').show();
+        // to check for require validation
+        if (requirevalidation()) {
+            //if ($("input[name='Rolelevel']:checked").val() != undefined) {
+            //        $('#lblRolelevel').removeClass('text-danger');
+                var Permissions = [];
+                $("#dvRolePermissions .row .col-md-3").each(function (index) {
+                    Permissions.push({
+                        'moduleid': $(this).find(".minimal:checkbox").attr('moduleid'),
+                        'actionid': $(this).find(".minimal:checkbox").attr('actionid'),
+                        'ischecked': $(this).find(".minimal:checkbox").prop('checked') == false ? 0 : 1
+                    });
+                });
+                var myJsonString = JSON.stringify(Permissions);
+                var objRolePermission = new FormData();
+                objRolePermission.append("RoleID", $('#hdnRoleID').val());
+                    objRolePermission.append("RoleName", $('#txtRoleName').val().trim());
+                    //objRolePermission.append("RoleLevel", $("input[name='Rolelevel']:checked").val().trim());
+                    //objRolePermission.append("RoleDescription", $('#txtRoleDescription').val().trim());
+                objRolePermission.append("PermissionString", myJsonString);
+                $.ajax({
+                    url: "/Role/AddUpdateRole",
+                    type: "POST",
+                    contentType: false,
+                    processData: false,
+                    data: objRolePermission,
+                    success: function (result, status, xhr) {
+                        if (result != "-1") {
+                            var elements = $(result);
+                            var found = $('#isunauthorized', elements);
+                            // to check that user has rights for this page access
+                            if (found.length > 0) {
+                                window.location.href = "/Login/UnAuthorized";
+                            }
+                            else {
+                                //if value is 0 then inserted else updated
+                                if ($('#hdnRoleID').val() == "0") {
+                                    toastr.remove();
+                                    toastr.success('Role inserted successfully.');
+                                }
+                                else {
+                                    toastr.remove();
+                                    toastr.success('Role updated successfully.');
+                                }
+                                setTimeout(function () { window.location.href = window.location.href; }, 10000);
+                            }
+                        }
+                        else {
+                            toastr.remove();
+                            toastr.error('Role with same name already exists.');
+                        }
+                    },
+                    complete: function () {
+                        $('#divLoader').hide();
+                    },
+                    error: function () {
+                        toastr.remove();
+                        toastr.error('Something went wrong.');
+                    }
+                    });
+                //}
+                //else {
+                //    toastr.remove();
+                //    $('#lblRolelevel').addClass('text-danger');
+                //    toastr.error('Role level is required.');
+                //    $('#divLoader').hide();
+                //}
+            }
+            else {
+                toastr.remove();
+                toastr.error('Role name is required.');
+            }
+        }
+        function EditRole(roleid, rolename) {
+            $('#divLoader').show();
+            $('#roleheading').text('Edit Role');
+            $('#btnsaverole').text('Update Role');
+            $('#hdnRoleID').val(roleid);
+            $('#txtRoleName').val(rolename);
+            //$('#txtRoleDescription').val(description);
+            //if (rolelevel == "web") {
+            //    $('#rbdWeb').prop('checked', 'checked');
+            //}
+            //else if (rolelevel == "mobile") {
+            //    $('#rbdmobile').prop('checked', 'checked');
+            //}
+            //else {
+            //    $('#rbddesktop').prop('checked', 'checked');
+            //}
+            $('input[type="checkbox"].minimal, input[type="radio"].minimal').iCheck({
+                checkboxClass: 'icheckbox_minimal-blue',
+                radioClass: 'iradio_minimal-blue'
+            });
+            var fileData = new FormData();
+            fileData.append("RoleID", $('#hdnRoleID').val());
+            $.ajax({
+                url: "/Role/GetEditPermissionList",
+                type: "POST",
+                contentType: false,
+                processData: false,
+                data: fileData,
+                success: function (result, status, xhr) {
+                    var obj = null;
+                    try {
+                        obj = JSON.parse(result);
+                    } catch (e) {
+                        var elements = $(result);
+                        var found = $('#isunauthorized', elements);
+                        // to check that user has rights for this page access
+                        if (found.length > 0) {
+                            window.location.href = "/login/UnAuthorized";
+                        }
+                        else {
+                            setTimeout(function () { window.location.href = window.location.href; }, 10000);
+                        }
+                    }
+                    $("#dvRolePermissions .row .col-md-3").each(function (index) {
+                        $(this).find(".minimal:checkbox").prop('checked', '');
+                        $('input[type="checkbox"].minimal, input[type="radio"].minimal').iCheck({
+                            checkboxClass: 'icheckbox_minimal-blue',
+                            radioClass: 'iradio_minimal-blue'
+                        });
+                    });
+                    if (obj != null && obj.length >0) {
+                        $.each(obj, function (i, item) {
+                            $('input[actionid="' + item.actionid + '"][moduleid="' + item.moduleid + '"]').prop('checked','checked');
+                            $('input[type="checkbox"].minimal, input[type="radio"].minimal').iCheck({
+                                checkboxClass: 'icheckbox_minimal-blue',
+                                radioClass: 'iradio_minimal-blue'
+                            });
+                        });
+
+                    }
+                    else {
+                        $("#dvRolePermissions .row .col-md-3").each(function (index) {
+                            $(this).find(".minimal:checkbox").prop('checked', '');
+                            $('input[type="checkbox"].minimal, input[type="radio"].minimal').iCheck({
+                                checkboxClass: 'icheckbox_minimal-blue',
+                                radioClass: 'iradio_minimal-blue'
+                            });
+                        });
+                    }
+                },
+                complete: function () {
+                    $('#divLoader').hide();
+                },
+                error: function () {
+                }
+            });
+        }
+        function requirevalidation() {
+            var count = 0;
+            $(".chkRequired").each(function () {
+                //check that textbox is blank or null
+              if ($(this).val() == "" || $(this).val() == '' || $(this).val() == null || $(this).val() == "0" || $(this).val() == 0) {
+                    $(this).prev('label').addClass('text-danger');
+                    if ($(this).prev('label').text() == "") {
+                        $(this).parent().find('label').addClass('text-danger');
+                    }
+                    count = 1;
+                }
+                else {
+                    $(this).prev('label').removeClass('text-danger');
+                    if ($(this).prev('label').text() == "") {
+                        $(this).parent().find('label').removeClass('text-danger');
+                    }
+                }
+            });
+            //if count is 0 then validation is true else false
+            if (count != 0) {
+                toastr.remove();
+                toastr.error('All fields in red are required.');
+                $('#divLoader').hide();
+                return false;
+            }
+            else {
+                return true;
+            }
+        }
+    </script>
+}
+

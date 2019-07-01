@@ -1,0 +1,283 @@
+using System;
+using System.Collections.Generic;
+using System.Configuration;
+using System.Data;
+using System.Data.SqlClient;
+using System.Linq;
+using System.Web;
+using System.Web.Script.Serialization;
+using static adminlte.Models.RoleViewModel;
+
+namespace adminlte.Classes
+{
+    public class dbRolesManegement
+    {
+        public static List<ModuleActionList> GetModuleAndAction()
+        {
+            List<ModuleActionList> objmoduleactionlist = new List<ModuleActionList>();
+            RoleAction objRoleAction = new RoleAction();
+            List<RoleAction> objRoleActionList = new List<RoleAction>();
+            DataTable moduledt = new DataTable();
+            DataTable actiondt = new DataTable();
+            try
+            {
+                SqlConnection con = new SqlConnection(ConfigurationManager.ConnectionStrings["Connection"].ConnectionString);
+                SqlCommand cmd = new SqlCommand("sp_module_selectAll", con);
+                cmd.CommandType = CommandType.StoredProcedure;
+                con.Open();
+                moduledt.Load(cmd.ExecuteReader());
+                con.Close();
+                SqlConnection con1 = new SqlConnection(ConfigurationManager.ConnectionStrings["Connection"].ConnectionString);
+                SqlCommand cmd1 = new SqlCommand("sp_action_selectAll", con1);
+                cmd1.CommandType = CommandType.StoredProcedure;
+                //DALSQLHelper.cmd.CommandText = "manual_sp_getAction";
+                con1.Open();
+                actiondt.Load(cmd1.ExecuteReader());
+                con1.Close();
+                if (moduledt.Rows.Count > 0)
+                {
+                    for (int i = 0; i < actiondt.Rows.Count; i++)
+                    {
+                        objRoleActionList.Add(new RoleAction
+                        {
+                            actionid = Convert.ToInt32(actiondt.Rows[i]["id"]),
+                            actionname = Convert.ToString(actiondt.Rows[i]["name"]),
+                        });
+                    }
+                    for (int i = 0; i < moduledt.Rows.Count; i++)
+                    {
+                        objmoduleactionlist.Add(new ModuleActionList
+                        {
+                            moduleid = Convert.ToInt32(moduledt.Rows[i]["id"]),
+                            modulename = Convert.ToString(moduledt.Rows[i]["name"]),
+                            actionlist = objRoleActionList,
+                        });
+                    }
+                }
+                return objmoduleactionlist;
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+            finally
+            {
+                moduledt.Dispose();
+                actiondt.Dispose();
+            }
+        }
+
+        public static List<RolePermission> GetRolesList(int roleid)
+        {
+            List<RolePermission> objRolePermission = new List<RolePermission>();
+            DataTable roledt = new DataTable();
+            try
+            {
+                SqlConnection con = new SqlConnection(ConfigurationManager.ConnectionStrings["Connection"].ConnectionString);
+                SqlCommand cmd = new SqlCommand("sp_roleList_selectAll", con);
+                cmd.CommandType = CommandType.StoredProcedure;
+                //cmd.Parameters.AddWithValue("@action", roleid);
+                con.Open();
+                roledt.Load(cmd.ExecuteReader());
+                con.Close();
+                if (roledt.Rows.Count > 0)
+                {
+                    for (int i = 0; i < roledt.Rows.Count; i++)
+                    {
+                        objRolePermission.Add(new RolePermission
+                        {
+                            RoleID = Convert.ToInt32(roledt.Rows[i]["RoleID"]),
+                            RoleName = Convert.ToString(roledt.Rows[i]["RoleName"]),
+                            //RoleLevel = Convert.ToString(roledt.Rows[i]["role_level"]),
+                            //Permission = Convert.ToString(roledt.Rows[i]["permission"]),
+                            //RoleDescription = Convert.ToString(roledt.Rows[i]["description"]),
+                        });
+                    }
+                }
+                return objRolePermission;
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+            finally
+            {
+                roledt.Dispose();
+            }
+        }
+
+        public static string AddUpdateRole(RolePermission objRolePermission)
+        {
+            DataTable dt = new DataTable();
+            int roleid = 0;
+            moduleActionMappingList objModuleActionMapping = new moduleActionMappingList();
+            JavaScriptSerializer ser = new JavaScriptSerializer();
+            var r = ser.Deserialize<List<ModuleActionMapping>>(objRolePermission.PermissionString);
+            objModuleActionMapping.objModuleActionMapping = r;
+            try
+            {
+                if (objRolePermission.RoleID == 0)
+                {
+                    SqlConnection con = new SqlConnection(ConfigurationManager.ConnectionStrings["Connection"].ConnectionString);
+                    SqlCommand cmd = new SqlCommand("sp_role_Insert", con);
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.AddWithValue("@Role_name", objRolePermission.RoleName);
+                    cmd.Parameters.AddWithValue("@UserID", objRolePermission.Userid);
+                    //cmd.Parameters.AddWithValue("@RoleLevel", objRolePermission.RoleLevel);
+                    //cmd.Parameters.AddWithValue("@RoleDescription", objRolePermission.RoleDescription);
+                    var test = objRolePermission;
+                    con.Open();
+                    dt.Load(cmd.ExecuteReader());
+                    con.Close();
+                    if (dt.Rows.Count > 0)
+                    {
+                        roleid = Convert.ToInt32(dt.Rows[0]["roleid"]);
+                    }
+                }
+                else
+                {
+                    SqlConnection con = new SqlConnection(ConfigurationManager.ConnectionStrings["Connection"].ConnectionString);
+                    SqlCommand cmd = new SqlCommand("sp_role_Upadet", con);
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.AddWithValue("@Role_name", objRolePermission.RoleName);
+                    cmd.Parameters.AddWithValue("@UserID", objRolePermission.Userid);
+                    //cmd.Parameters.AddWithValue("@RoleLevel", objRolePermission.RoleLevel);
+                    cmd.Parameters.AddWithValue("@RoleID", objRolePermission.RoleID);
+                    //cmd.Parameters.AddWithValue("@RoleDescription", objRolePermission.RoleDescription);
+                    var test = objRolePermission;
+                    con.Open();
+                    dt.Load(cmd.ExecuteReader());
+                    con.Close();
+                    if (dt.Rows.Count > 0)
+                    {
+                        roleid = Convert.ToInt32(dt.Rows[0]["roleid"]);
+                    }
+                }
+
+                if (objModuleActionMapping.objModuleActionMapping != null && roleid != -1)
+                {
+                    SqlConnection con = new SqlConnection(ConfigurationManager.ConnectionStrings["Connection"].ConnectionString);
+                    SqlCommand cmd = new SqlCommand("sp_moduleaction_Delete", con);
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.CommandType = System.Data.CommandType.StoredProcedure;
+                    cmd.Parameters.AddWithValue("@roleid", roleid);
+                    con.Open();
+                    dt.Load(cmd.ExecuteReader());
+                    con.Close();
+                    foreach (var item in objModuleActionMapping.objModuleActionMapping)
+                    {
+                        if (item.ischecked == "1")
+                        {
+                            SqlConnection con1 = new SqlConnection(ConfigurationManager.ConnectionStrings["Connection"].ConnectionString);
+                            SqlCommand cmd1 = new SqlCommand("sp_moduleAction_Insert", con1);
+                            cmd1.CommandType = CommandType.StoredProcedure;
+                            cmd1.CommandType = System.Data.CommandType.StoredProcedure;
+                            cmd1.Parameters.AddWithValue("@moduleid", item.moduleid);
+                            cmd1.Parameters.AddWithValue("@actionid", item.actionid);
+                            cmd1.Parameters.AddWithValue("@userid", objRolePermission.Userid);
+                            cmd1.Parameters.AddWithValue("@roleid", roleid);
+                            con1.Open();
+                            dt.Load(cmd1.ExecuteReader());
+                            con1.Close();
+                        }
+                    }
+                }
+
+                return Convert.ToString(roleid);
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+        }
+
+        public static List<ModuleActionMapping> GetPermissionforedit(int roleid)
+        {
+            List<ModuleActionMapping> objModuleActionMapping = new List<ModuleActionMapping>();
+            DataTable roledt = new DataTable();
+            try
+            {
+                SqlConnection con = new SqlConnection(ConfigurationManager.ConnectionStrings["Connection"].ConnectionString);
+                SqlCommand cmd = new SqlCommand("sp_getpermissionforedit", con);
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.Parameters.AddWithValue("@userrole_id", roleid);
+                con.Open();
+                roledt.Load(cmd.ExecuteReader());
+                con.Close();
+                if (roledt.Rows.Count > 0)
+                {
+                    for (int i = 0; i < roledt.Rows.Count; i++)
+                    {
+                        objModuleActionMapping.Add(new ModuleActionMapping
+                        {
+                            moduleid = Convert.ToString(roledt.Rows[i]["module_id"]),
+                            actionid = Convert.ToString(roledt.Rows[i]["action_id"]),
+                        });
+                    }
+                }
+                return objModuleActionMapping;
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+            finally
+            {
+                roledt.Dispose();
+            }
+        }
+
+        public static void DeleteRole(int roleid)
+        {
+            try
+            {
+                SqlConnection con = new SqlConnection(ConfigurationManager.ConnectionStrings["Connection"].ConnectionString);
+                SqlCommand cmd = new SqlCommand("sp_role_Delete", con);
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.Parameters.AddWithValue("@RoleID", roleid);
+                con.Open();
+                cmd.ExecuteScalar();
+                con.Close();
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+        }
+
+        public static List<Permission> CheckRoles(int RoleID, string PermissionType)
+        {
+            DataTable dt = new DataTable();
+            List<Permission> objPermissionlist = new List<Permission>();
+            try
+            {
+                SqlConnection con = new SqlConnection(ConfigurationManager.ConnectionStrings["Connection"].ConnectionString);
+                SqlCommand cmd = new SqlCommand("sp_CheckRole", con);
+                cmd.CommandType = CommandType.StoredProcedure;
+                //cmd.Parameters.AddWithValue("@RoleID", roleid);
+                
+                cmd.Parameters.AddWithValue("@userrole_id", RoleID);
+                cmd.Parameters.AddWithValue("@Permissionname", PermissionType);
+                con.Open();
+                dt.Load(cmd.ExecuteReader());
+                con.Close();
+                for (int i = 0; i < dt.Rows.Count; i++)
+                {
+                    objPermissionlist.Add(new Permission
+                    {
+                        ActionName = Convert.ToString(dt.Rows[i]["ActionName"]),
+                    });
+                }
+                return objPermissionlist;
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+            finally
+            {
+                dt.Dispose();
+            }
+        }
+    }
+}

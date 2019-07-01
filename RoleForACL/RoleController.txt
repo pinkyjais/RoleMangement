@@ -1,0 +1,140 @@
+using adminlte.Classes;
+using adminlte.Models;
+using System;
+using System.Collections.Generic;
+using System.Configuration;
+using System.Data.SqlClient;
+using System.Linq;
+using System.Web;
+using System.Web.Mvc;
+using System.Web.Script.Serialization;
+using static adminlte.Models.RoleViewModel;
+
+namespace adminlte.Controllers
+{
+    //[SessionTimeout]
+    public class RoleController : Controller
+    {
+        // GET: Role
+        public ActionResult Index()
+        {
+            return View();
+        }
+
+        [CustomAuthorize("Listing")]
+        public ActionResult ManageRole()
+        {
+            try
+            {
+                BindModuleActionlist objBindModuleActionlist = new BindModuleActionlist();
+                objBindModuleActionlist.objBindModuleaction = dbRolesManegement.GetModuleAndAction();
+                objBindModuleActionlist.objRoleList = dbRolesManegement.GetRolesList(0);
+                return View(objBindModuleActionlist);
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+        }
+
+        [CustomAuthorize("Add","Edit")]
+        public string AddUpdateRole(RolePermission objRolePermission)
+        {
+            try
+            {
+                string str = "";
+                objRolePermission.Userid = Convert.ToInt32(Session["UserId"]);
+                str = dbRolesManegement.AddUpdateRole(objRolePermission);
+                return str;
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+        }
+
+        [HttpPost]
+        [CustomAuthorize("Edit")]
+        public string GetEditPermissionList(RolePermission objRolePermission)
+        {
+            try
+            {
+                string str = "";
+                List<ModuleActionMapping> objModuleActionMapping = new List<ModuleActionMapping>();
+                objModuleActionMapping = dbRolesManegement.GetPermissionforedit(objRolePermission.RoleID);
+                var jsonSerialiser = new JavaScriptSerializer();
+                str = jsonSerialiser.Serialize(objModuleActionMapping);
+                return str;
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+        }
+
+        [CustomAuthorize("Delete")]
+        public ActionResult DeleteRole(int id)
+        {
+            try
+            {
+                dbRolesManegement.DeleteRole(id);
+                return RedirectToAction("ManageRole");
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+        }
+
+        //public ActionResult SaveRole()
+        //{
+        //    try
+        //    {
+        //        return View();
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        throw ex;
+        //    }
+
+        //}
+
+        //public string AddUpdateRole(Role addRole)
+        //{
+        //    SqlConnection con = new SqlConnection(ConfigurationManager.ConnectionStrings["Connection"].ConnectionString);
+        //    bool isAvailable = false;
+        //    try
+        //    {
+        //        if (addRole != null)
+        //        {
+        //            con.Open();
+        //            SqlCommand cmd = new SqlCommand("SP_AuthorityLevel", con);
+        //            cmd.CommandType = System.Data.CommandType.StoredProcedure;
+        //            cmd.Parameters.AddWithValue("@Action", 1);
+        //            cmd.Parameters.AddWithValue("RoleName", addRole.RoleName);
+        //            cmd.Parameters.AddWithValue("RoleID", addRole.RoleID);
+        //            cmd.Parameters.AddWithValue("CreatedBy", Session["UserID"]);
+        //            //cmd.Parameters.AddWithValue("CreatedDate", System.DateTime.Now);
+        //            isAvailable = Convert.ToBoolean(cmd.ExecuteNonQuery());
+        //            if (isAvailable == true)
+        //            {
+        //                return "Role Added Successfully";
+        //            }
+        //            else
+        //            {
+        //                return "Something Missing";
+        //            }
+        //        }
+        //        else
+        //        {
+        //            return "Oops! Something Went wrong.";
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return "" + ex + "";
+        //    }
+        //}
+
+    }
+}

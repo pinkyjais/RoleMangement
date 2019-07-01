@@ -1,0 +1,72 @@
+using adminlte.Classes;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Web;
+using System.Web.Mvc;
+using System.Web.Routing;
+
+namespace adminlte.Models
+{
+    public class SessionTimeoutAttribute : ActionFilterAttribute
+    {
+        public override void OnActionExecuting(ActionExecutingContext filterContext)
+        {
+            //to check that session is expired
+            if (HttpContext.Current.Session["UserId"].ToString() == null)
+            {
+                filterContext.Result = new RedirectToRouteResult(new
+                RouteValueDictionary(new { controller = "Login", action = "Login" }));
+                return;
+            }
+            base.OnActionExecuting(filterContext);
+        }
+    }
+    public class CustomAuthorizeAttribute : AuthorizeAttribute
+    {
+        private readonly string[] allowedroles;
+        public CustomAuthorizeAttribute(params string[] roles)
+        {
+            this.allowedroles = roles;
+        }
+        protected override bool AuthorizeCore(HttpContextBase httpContext)
+        {
+            bool authorize = false;
+            foreach (var role in allowedroles)
+            {
+                var user = dbRolesManegement.CheckRoles(Convert.ToInt32(HttpContext.Current.Session["RoleId"].ToString() == null ? "0" : HttpContext.Current.Session["RoleId"].ToString()), role);
+                if (user.Count() > 0)
+                {
+                    authorize = true; /* return true if Entity has current user(active) with specific role */
+                }
+                else
+                {
+                    authorize = false;
+                }
+
+            }
+            return authorize;
+        }
+        protected override void HandleUnauthorizedRequest(AuthorizationContext filterContext)
+        {
+            filterContext.Result = new HttpUnauthorizedResult();
+            if (filterContext.HttpContext.User.Identity.IsAuthenticated)
+            {
+                base.HandleUnauthorizedRequest(filterContext);
+            }
+            else
+            {
+                var areaName = filterContext.RouteData.DataTokens["area"];
+                filterContext.Result = new RedirectToRouteResult(new
+                    RouteValueDictionary(new { controller = "Login", action = "UnAuthorized" }));
+            }
+            //to check that session is expired
+            if (Convert.ToInt32(HttpContext.Current.Session["UserId"].ToString()) == 0)
+            {
+                filterContext.Result = new RedirectToRouteResult(new
+                RouteValueDictionary(new { controller = "Login", action = "Login" }));
+            }
+        }
+
+    }
+}

@@ -1,0 +1,56 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Web;
+
+namespace adminlte.Models
+{
+    public class RoleViewModel
+    {
+        public class BindModuleActionlist
+        {
+            public List<ModuleActionList> objBindModuleaction { get; set; }
+            public List<RolePermission> objRoleList { get; set; }
+
+        }
+        public class ModuleActionList : Module
+        {
+            public List<RoleAction> actionlist { get; set; }
+        }
+        public class Module
+        {
+            public int moduleid { get; set; }
+            public string modulename { get; set; }
+        }
+        public class RoleAction
+        {
+            public int actionid { get; set; }
+            public string actionname { get; set; }
+        }
+        public class moduleActionMappingList
+        {
+            public List<ModuleActionMapping> objModuleActionMapping { get; set; }
+        }
+        public class ModuleActionMapping
+        {
+            public string moduleid { get; set; }
+            public string actionid { get; set; }
+            public string ischecked { get; set; }
+        }
+        public class RolePermission
+        {
+            public int Userid { get; set; }
+            public int RoleID { get; set; }
+            public string RoleName { get; set; }
+            public string RoleLevel { get; set; }
+            public string Permission { get; set; }
+            public string RoleDescription { get; set; }
+            public string PermissionString { get; set; }
+            public List<ModuleActionMapping> permissionList { get; set; }
+        }
+        public class Permission
+        {
+            public string ActionName { get; set; }
+        }
+    }
+}
